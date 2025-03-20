@@ -1,0 +1,9 @@
+colorama
+Flask
+flask-cors
+jqdatasdk
+numpy
+pandas
+python-dateutil
+requests
+Werkzeug
