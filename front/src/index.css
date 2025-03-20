@@ -1,0 +1,61 @@
+/* SPDX-License-Identifier: MulanPSL-2.0 */
+
+/*
+ * 
+ * 创建于2024年2月29日 上海市嘉定区
+ */
+
+@font-face {
+    font-family: 'MiSans';
+    src: url('https://canfish.oss-cn-shanghai.aliyuncs.com/shared/fonts/MiSans-Regular.woff2') format('woff2');
+}
+
+body, html {
+    
+    font-family: 'MiSans';
+
+    /* 设为单页 app 模式。 */
+    margin: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 更现代化的滚动条。 */
+::-webkit-scrollbar,
+.nicer-scrollbar::-webkit-scrollbar {
+    width: 8px; /* todo: 暂时从 8 改为 0，以应对 overlay 失效。 */
+    height: 8px;
+}
+
+::-webkit-scrollbar-track,
+.nicer-scrollbar::-webkit-scrollbar-track {
+    background: #0000;
+}
+
+::-webkit-scrollbar-thumb,
+.nicer-scrollbar::-webkit-scrollbar-thumb {
+    background: #0002;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover,
+.nicer-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #0003;
+}
+
+::-webkit-scrollbar-thumb:active,
+.nicer-scrollbar::-webkit-scrollbar-thumb:active {
+    background: #0004;
+}
+
+.overflow-y-overlay {
+    overflow-y: overlay;
+}
+
+.overflow-x-overlay {
+    overflow-x: overlay;
+}

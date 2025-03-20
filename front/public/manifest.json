@@ -1,0 +1,15 @@
+{
+  "short_name": "落霞前厅",
+  "name": "落霞前厅",
+  "icons": [
+    {
+      "src": "camping_color.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1677b3",
+  "background_color": "#ffffff"
+}

@@ -1,0 +1,11 @@
+/* SPDX-License-Identifier: MulanPSL-2.0 */
+/* https://blog.csdn.net/GuanJdoJ/article/details/122967629 */
+
+
+.ant-table-pagination.ant-pagination {
+    margin: 16px 0 0;
+}
+
+.ant-table-thread > tr > th {
+    white-space: nowrap;
+}
