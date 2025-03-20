@@ -7,3 +7,4 @@ pandas
 python-dateutil
 requests
 Werkzeug
+pyarrow
