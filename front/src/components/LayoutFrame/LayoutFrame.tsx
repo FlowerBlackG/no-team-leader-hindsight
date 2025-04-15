@@ -113,7 +113,7 @@ export default function LayoutFrame(
 
             <FrameSidebar 
                 pageEntity={pageEntity} 
-                username={username} 
+                username={"伤心的飘"} 
             />
         }
 
@@ -197,14 +197,18 @@ function FrameSidebar(props: FrameSidebarProps) {
 
     const [frameSidebarLoaded, setFrameSidebarLoaded] = useState(false)
 
+    let icon = props.pageEntity?.icon
+    if (icon === undefined) {
+        icon = ''
+    }
+
+    if (pageIcon !== icon)
+        setPageIcon(icon)
+
+    
     useConstructor(constructor)
     function constructor() {
 
-        let icon = props.pageEntity?.icon
-        if (icon === undefined) {
-            icon = ''
-        }
-        setPageIcon(icon)
     }
 
 

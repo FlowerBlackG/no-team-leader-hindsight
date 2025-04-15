@@ -12,7 +12,7 @@ import FluentUIEmojiProxy from "../../utils/FluentUIEmojiProxy";
 import { Link } from "react-router-dom";
 
 import styles from './Index.module.css'
-import { ensureGlobalData } from "../../common/GlobalData";
+import { ensureGlobalData, globalHooks } from "../../common/GlobalData";
 import { Typography, message } from "antd";
 import { homePageLyrics } from "./Lyrics";
 import Random from "../../utils/Random";
@@ -47,6 +47,7 @@ export function IndexPage() {
                 setState({...state}) // force re-render
             })
             .catch(() => {})
+        globalHooks.layoutFrame.setCurrentPageEntity(pageEntity)
     }
 
     return <div

@@ -9,6 +9,7 @@ import { IndexPage } from "../../pages/index/Index"
 import LoginPageBackgroundGalleryPage from "../../pages/login-page-background-gallery/LoginPageBackgroundGallery"
 import LoginPage from "../../pages/login/Login"
 import MyProfilePage from "../../pages/my-profile/MyProfile"
+import { SearchPage } from "../../pages/search/Search"
 import TestPage from "../../pages/test/Test"
 import FluentUIEmojiProxy from "../../utils/FluentUIEmojiProxy"
 import { PageRouteCategory, PageRouteData } from "./TypeDef"
@@ -70,6 +71,13 @@ export default class PageRoutes {
             inFrame: true,
             showInSidebar: true,
             category: categoryKeys.vesperCenterControlPanel
+        },
+
+        {
+            path: '/search',
+            name: '搜索',
+            icon: FluentUIEmojiProxy.colorSvg('face_with_monocle_color'),
+            element: <SearchPage />
         },
 
 

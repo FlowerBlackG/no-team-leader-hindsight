@@ -31,7 +31,7 @@ def ping():
 def get_security_basic_info():
     search = request.args.get('search')
     
-    if search is None:
+    if (search is None) or (len(search) == 0):
         return IResponse.error(msg='bad argument.')
     
     res = JQDataTools.security_info(search)

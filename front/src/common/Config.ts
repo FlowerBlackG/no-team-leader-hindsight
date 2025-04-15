@@ -31,6 +31,6 @@ export default class Config {
 
     /* private fields */
     
-    private static _backendRoot = DataStore.get<string>(storageKeys.backendRoot, 'http://localhost:9000')!
+    private static _backendRoot = DataStore.get<string>(storageKeys.backendRoot, 'http://localhost:5000')!
 
 }

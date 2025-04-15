@@ -60,6 +60,8 @@ export function AboutPage() {
 
         })
 
+
+        globalHooks.layoutFrame.setCurrentPageEntity(pageEntity)
         
     }
 

@@ -10,7 +10,7 @@ import { useConstructor } from "../../utils/react-functional-helpers"
 import { LoginPageBackgroundManager } from "../login/LoginPageBackgrounds"
 
 import styles from './LoginPageBackgroundGallery.module.css'
-import { ensureGlobalData } from "../../common/GlobalData"
+import { ensureGlobalData, globalHooks } from "../../common/GlobalData"
 import { useState } from "react"
 
 
@@ -27,6 +27,8 @@ export default function LoginPageBackgroundGalleryPage() {
     useConstructor(constructor)
     function constructor() {
         ensureGlobalData({dontReject: true, dontResolve: true})
+
+        globalHooks.layoutFrame.setCurrentPageEntity(pageEntity)
     }
 
 
