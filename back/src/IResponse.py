@@ -1,6 +1,12 @@
 from enum import Enum
 import json
 from http import HTTPStatus
+import flask
+
+
+class IResponseJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
 
 
 class IResponse:
@@ -11,15 +17,12 @@ class IResponse:
 
     @staticmethod
     def ok(data=None, msg=None, code=HTTPStatus.OK):
-        return IResponse(data, code.value, msg or code.phrase)
+        ires = IResponse(data, code.value, msg or code.phrase)
+        print(json.dumps(ires, cls=IResponseJSONEncoder, ensure_ascii=False))
+        return flask.Response(json.dumps(ires, cls=IResponseJSONEncoder, ensure_ascii=False), content_type='application/json')
 
     @staticmethod
     def error(data=None, msg=None, code=HTTPStatus.NOT_ACCEPTABLE):
-        return IResponse(data, code.value, msg or code.phrase)
+        ires = IResponse(data, code.value, msg or code.phrase)
+        return flask.Response(json.dumps(ires, cls=IResponseJSONEncoder, ensure_ascii=False), content_type='application/json')
     
-    def to_dict(self):
-        return {
-            "data": self.data,
-            "code": self.code,
-            "msg": self.msg
-        }

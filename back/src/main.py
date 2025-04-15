@@ -12,18 +12,30 @@ import jqdatasdk
 
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 CORS(app)
 
 
 @app.route('/')
 def root():
-    return IResponse.ok("hello").to_dict()
+    return IResponse.ok("hello")
 
 
 @app.route('/ping', methods=['GET'])
-def analyze():
+def ping():
     result = "pong"
-    return IResponse.ok(result).to_dict()
+    return IResponse.ok(result)
+
+
+@app.route('/security-basic-info', methods=['GET'])
+def get_security_basic_info():
+    search = request.args.get('search')
+    
+    if search is None:
+        return IResponse.error(msg='bad argument.')
+    
+    res = JQDataTools.security_info(search)
+    return IResponse.ok(res)
 
 
 def main() -> int:
