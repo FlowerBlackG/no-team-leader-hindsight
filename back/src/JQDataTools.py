@@ -81,9 +81,8 @@ def _get_all_securities():
 
         __jqdata.securities_raw = jqdatasdk.get_all_securities( # type: ignore
             types=[
-                'stock', 'fund', 'index', 'futures', 'conbond', 'etf', 'lof', 'fja', 'fjb', 
-                'open_fund', 'bond_fund', 'stock_fund', 'QDII_fund', 'money_market_fund', 
-                'mixture_fund', 'bjse', 'csi'
+                'stock', 'index', 'conbond', 'etf', 'lof', 'fja', 'fjb',
+                'mixture_fund', 'bjse'
             ]
         )
         __jqdata.securities_raw.index.name = 'instrument_id'

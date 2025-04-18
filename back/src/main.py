@@ -1,14 +1,9 @@
 from IResponse import IResponse
 from flask import Flask, request
-import json
-import io
 from flask_cors import CORS
-import sys
+import MinuteData
 
-from gData import gData
 import JQDataTools
-import log
-import jqdatasdk
 
 
 app = Flask(__name__)
@@ -38,8 +33,38 @@ def get_security_basic_info():
     return IResponse.ok(res)
 
 
+
+@app.route('/minute-data', methods=['GET'])
+def get_minute_data():
+    inst_id = request.args.get('instId')
+    if (inst_id is None):
+        return IResponse.error(msg='bad argument.')
+    
+    date = request.args.get('date')
+    if date != '20240430':
+        return IResponse.error(msg='not supported. this api is so naive.')
+    
+    if inst_id not in MinuteData.minute_data:
+        return IResponse.error(msg=f'data of {inst_id} not found.')
+    
+
+    security_info_search_res = JQDataTools.security_info(f'{inst_id}')
+    if len(security_info_search_res) == 0:
+        return IResponse.error(msg='maybe internal error..')
+
+    res = {
+        'instInfo': security_info_search_res[0],
+        'date': date,
+        'minute': MinuteData.minute_data[inst_id]
+    }
+    return IResponse.ok(res)
+
+
 def main() -> int:
     if not JQDataTools.init():
+        return 1
+    
+    if not MinuteData.init():
         return 1
 
 
