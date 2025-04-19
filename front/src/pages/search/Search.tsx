@@ -100,6 +100,7 @@ export function SearchPage() {
             style={{
                 flexShrink: 0,
                 flexGrow: 1,
+                height: 0
             }}
 
             className="overflow-y-overlay"
@@ -141,6 +142,8 @@ export function SearchPage() {
                     </Card>
                 })
             }
+
+            <div style={{ height: 16, flexShrink: 0 }} />
         </Flex>
 
     </Flex>
