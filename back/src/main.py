@@ -61,7 +61,7 @@ def get_minute_data():
 
 
 def main() -> int:
-    if not JQDataTools.init():
+    if not JQDataTools.init(cache_only=True):
         return 1
     
     if not MinuteData.init():

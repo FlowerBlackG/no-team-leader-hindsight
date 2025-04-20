@@ -105,8 +105,8 @@ def security_info(search: str) -> list[structs.InstrumentInfo]:
     return res
 
 
-def init() -> bool:
-    if not _auth():
+def init(cache_only=False) -> bool:
+    if (not cache_only) and (not _auth()):
         return False
     
     _get_all_securities()
