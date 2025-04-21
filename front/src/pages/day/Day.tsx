@@ -103,9 +103,35 @@ export function DayPage() {
     }
 
 
+    function calculateMA(dayCount: number, data: MinuteMarketDataEntry[]) {
+        let result = [] as number[]
+        for (let i = 0, len = data.length; i < len; i++) {
+            if (i < dayCount) {
+                result.push(0);
+                continue;
+            }
+            let sum = 0;
+            for (let j = 0; j < dayCount; j++) {
+                sum += data[i - j].last_price;
+            }
+            result.push(+(sum / dayCount).toFixed(3));
+        }
+
+
+        let intervalResult = [] as number[]
+        for (let i = kInterval - 1; i < result.length; i += kInterval) {
+            intervalResult.push(result[i])
+        }
+
+        return intervalResult
+    }
+
+
+    // Ref: https://echarts.apache.org/examples/en/editor.html?c=candlestick-brush
     function getKChartOption(kInterval: number) {
         let xAxis = []
         let data = [] as number[][]
+        let tradeVolumes = [] as any[]
 
         let n = Math.min(marketData.length, kInterval)
         if (n <= 1)
@@ -114,11 +140,14 @@ export function DayPage() {
         let dayLow = 9999999999
         let dayHi = -1
 
+        let counter = 0
+
         for (let i = n - 1; i < marketData.length; i += n) {
             xAxis.push(marketData[i].datetime.substring(8, 8 + 4))
 
             let hiPri = marketData[i].high_price
             let lowPri = marketData[i].low_price
+            let tradeVolume = 0
 
             for (let j = i - n + 1; j < i; j++) {
                 hiPri = Math.max(hiPri, marketData[j].high_price)
@@ -126,7 +155,11 @@ export function DayPage() {
 
                 dayHi = Math.max(dayHi, marketData[j].high_price)
                 dayLow = Math.min(dayLow, marketData[j].low_price)
+
+                tradeVolume += marketData[j].volume
             }
+
+            tradeVolumes.push([counter++, tradeVolume, (marketData[i-n+1].open_price <= marketData[i-1].last_price ? 1 : -1)])
 
             let oneCandle = [
                 marketData[i-n+1].open_price,
@@ -145,22 +178,154 @@ export function DayPage() {
         }
 
 
+
         return {
-            title: {
-                text: title
+            title: [
+                {
+                    text: title
+                },
+            ],
+
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                },
+                borderWidth: 1,
+                borderColor: '#ccc',
+                padding: 10,
+                textStyle: {
+                    color: '#000'
+                },
+                position: function (pos: any, params: any, el: any, elRect: any, size: any) {
+                    const obj: any = {
+                        top: 10
+                    };
+                    obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+                    return obj;
+                }
             },
-            xAxis: {
-                data: xAxis
+            axisPointer: {
+                link: [
+                    {
+                    xAxisIndex: 'all'
+                    }
+                ],
+                label: {
+                    backgroundColor: '#777'
+                }
             },
-            yAxis: {
-                min: dayLow,
-                max: dayHi
+            brush: {
+                xAxisIndex: 'all',
+                brushLink: 'all',
+                outOfBrush: {
+                    colorAlpha: 0.1
+                }
+            },
+            grid: [
+                {
+                    left: '10%',
+                    right: '8%',
+                    height: '50%'
+                },
+                {
+                    left: '10%',
+                    right: '8%',
+                    top: '63%',
+                    height: '16%'
+                }
+            ],
+            xAxis: [
+                {
+                    type: 'category',
+                    data: xAxis,
+                    boundaryGap: false,
+                    axisLine: { onZero: false },
+                    splitLine: { show: false },
+                    min: 'dataMin',
+                    max: 'dataMax',
+                    axisPointer: {
+                        z: 100
+                    }
+                },
+
+                {
+                    type: 'category',
+                    gridIndex: 1,
+                    data: xAxis,
+                    boundaryGap: false,
+                    axisLine: { onZero: false },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { show: false },
+                    min: 'dataMin',
+                    max: 'dataMax'
+                }
+            ],
+            yAxis: [
+                {
+                    scale: true,
+                    splitArea: {
+                        show: true
+                    },
+                    min: dayLow,
+                    max: dayHi
+                },
+                {
+                    scale: true,
+                    gridIndex: 1,
+                    splitNumber: 2,
+                    axisLabel: { show: false },
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    splitLine: { show: false }
+                }
+            ],
+            visualMap: {
+                show: false,
+                seriesIndex: 3,
+                dimension: 2,
+                pieces: [
+                    {
+                        value: 1,
+                        color: '#ee3f4d'
+                    },
+                    {
+                        value: -1,
+                        color: '#43b244'
+                    }
+                ]
             },
             series: [
                 {
                     type: 'candlestick',
                     data: data
                     
+                },
+                {
+                    name: 'MA12',
+                    type: 'line',
+                    data: calculateMA(12, marketData),
+                    smooth: true,
+                    lineStyle: {
+                        opacity: 0.2
+                    }
+                },
+                {
+                    name: 'MA30',
+                    type: 'line',
+                    data: calculateMA(30, marketData),
+                    smooth: true,
+                    lineStyle: {
+                        opacity: 0.2
+                    }
+                },
+                {
+                    name: 'Volume',
+                    type: 'bar',
+                    xAxisIndex: 1,
+                    yAxisIndex: 1,
+                    data: tradeVolumes
                 }
             ]
         }
@@ -182,7 +347,7 @@ export function DayPage() {
             style={{
                 margin: 12,
                 flexShrink: 0,
-                width: '96%',
+                width: '100%',
                 height: 600,
             }}
             
