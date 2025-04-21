@@ -47,7 +47,11 @@ __jqdata = _JQData()
 
 
 def _cache_dir() -> str:
-    return f'{os.environ["VC_DATA_CACHE_DIR"]}/jqdatatools'
+    KEY_DATA_CACHE_DIR = 'VC_DATA_CACHE_DIR'
+    if KEY_DATA_CACHE_DIR not in os.environ:
+        log.error(f'{KEY_DATA_CACHE_DIR} should be passed by environment variables.')
+        raise KeyError(KEY_DATA_CACHE_DIR)
+    return f'{os.environ[KEY_DATA_CACHE_DIR]}/jqdatatools'
 
 
 def _auth() -> bool:
