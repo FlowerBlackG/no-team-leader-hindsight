@@ -5,6 +5,7 @@
  */
 
 import { AboutPage } from "../../pages/about/About"
+import { DayPage } from "../../pages/day/Day"
 import { IndexPage } from "../../pages/index/Index"
 import LoginPageBackgroundGalleryPage from "../../pages/login-page-background-gallery/LoginPageBackgroundGallery"
 import LoginPage from "../../pages/login/Login"
@@ -24,13 +25,14 @@ export default class PageRoutes {
     private constructor() {}
 
     static routeCategories: Array<PageRouteCategory> = [
-        {
-            key: categoryKeys.vesperCenterControlPanel,
-            label: '控制台'
-        },
+
         {
             key: categoryKeys.tool,
             label: '工具'
+        },
+        {
+            key: categoryKeys.vesperCenterControlPanel,
+            label: '控制台'
         },
     ]
     
@@ -41,6 +43,26 @@ export default class PageRoutes {
      */
     static routes: Array<PageRouteData> = [
      
+        {
+            path: '/search',
+            name: '搜索',
+            icon: FluentUIEmojiProxy.colorSvg('face_with_monocle_color'),
+            element: <SearchPage />,
+            category: categoryKeys.tool
+        },
+
+        {
+            path: '/day',
+            name: '日线',
+            icon: FluentUIEmojiProxy.colorSvg('face_with_monocle_color'),
+            element: <DayPage />,
+            category: categoryKeys.tool,
+            showInSidebar: false,
+            showInHomePage: false,
+            showBackButton: true
+        },
+
+
            
         {
             path: '/login',
@@ -72,14 +94,6 @@ export default class PageRoutes {
             showInSidebar: true,
             category: categoryKeys.vesperCenterControlPanel
         },
-
-        {
-            path: '/search',
-            name: '搜索',
-            icon: FluentUIEmojiProxy.colorSvg('face_with_monocle_color'),
-            element: <SearchPage />
-        },
-
 
         {
             path: '/login-page-background-gallery',

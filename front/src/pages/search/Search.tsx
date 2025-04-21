@@ -7,17 +7,11 @@ import { SearchOutlined } from "@ant-design/icons";
 import styles from './Search.module.css'
 import { useConstructor } from "../../utils/react-functional-helpers";
 import PageRouteManager from "../../common/PageRoutes/PageRouteManager";
+import { SecurityBasicInfo } from "../../api/Entities";
 
 
 const pageData = {
     searchInvokeCount: 0
-}
-
-
-interface SecurityBasicInfo {
-    id: string
-    display_name: string
-    inst_type: string
 }
 
 
@@ -134,7 +128,17 @@ export function SearchPage() {
 
                                 }}
                             >
-                                <Button type="primary" ghost>单日行情</Button>
+                                <Button type="primary" ghost
+                                    onClick={() => {
+                                        globalHooks.app.navigate({
+                                            pathname: '/day',
+                                            search: `code=${it.id}`
+                                        })
+                                    }}
+                                >
+                                    单日行情
+                                </Button>
+                                
                                 <Button type="primary" ghost>手动回测</Button>
                                 <Button type="primary" ghost>网格模拟</Button>
                             </Space>

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MulanPSL-2.0
 
-import { GroupPermission, Permission } from "./Permissions"
 
 /*
 
@@ -13,49 +12,8 @@ export interface UserEntity {
 }
 
 
-export interface UserGroupEntity {
-    id: number
-    groupName: string
-    note: string
-    createTime: string
+export interface SecurityBasicInfo {
+    id: string
+    display_name: string
+    inst_type: string
 }
-
-export interface SeatEntity {
-    id: number
-    userId: number
-    groupId: number | null
-    creator: number
-    seatEnabled: boolean
-    nickname: string
-    linuxUid: number
-    linuxLoginName: number
-    linuxPasswdRaw: string
-    note: string
-    createTime: string
-    lastLoginTime: string
-}
-
-export interface PermissionEntity {
-    id: Permission
-    enumKey: string
-    note: string
-}
-
-export interface PermissionGrantEntity {
-    userId: number
-    permissionId: Permission
-}
-
-
-export interface GroupPermissionEntity {
-    id: GroupPermission
-    enumKey: string
-    note: string
-}
-
-export interface GroupPermissionGrantEntity {
-    userId: number
-    groupId: number
-    permissionId: GroupPermission
-}
-
