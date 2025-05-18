@@ -17,3 +17,24 @@ export interface SecurityBasicInfo {
     display_name: string
     inst_type: string
 }
+
+
+export interface MinuteMarketDataEntry {
+    security_id: string;
+    datetime: string;
+    pre_close_price: number;
+    open_price: number;
+    high_price: number;
+    low_price: number;
+    last_price: number;
+    volume: number;
+    amount: number;
+    iopv: number;
+    fp_volume: number;
+    fp_amount: number;
+    avg_price: number;
+    minute_num: number;
+    trading_day: string;
+}
+
+

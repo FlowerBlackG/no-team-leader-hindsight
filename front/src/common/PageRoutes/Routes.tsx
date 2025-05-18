@@ -9,6 +9,7 @@ import { DayPage } from "../../pages/day/Day"
 import { IndexPage } from "../../pages/index/Index"
 import LoginPageBackgroundGalleryPage from "../../pages/login-page-background-gallery/LoginPageBackgroundGallery"
 import LoginPage from "../../pages/login/Login"
+import { MultipleStockPage } from "../../pages/multiple-stock/MultipleStock"
 import MyProfilePage from "../../pages/my-profile/MyProfile"
 import { SearchPage } from "../../pages/search/Search"
 import TestPage from "../../pages/test/Test"
@@ -43,11 +44,30 @@ export default class PageRoutes {
      */
     static routes: Array<PageRouteData> = [
      
+    
+        {
+            path: '/',
+            name: '首页',
+            element: <IndexPage />,
+            icon: FluentUIEmojiProxy.colorSvg('seedling_color'),
+            inFrame: true,
+            showInSidebar: true,
+            showInHomePage: false,
+        },
+    
         {
             path: '/search',
             name: '搜索',
             icon: FluentUIEmojiProxy.colorSvg('face_with_monocle_color'),
             element: <SearchPage />,
+            category: categoryKeys.tool
+        },
+
+        {
+            path: '/multiple-stock',
+            name: '同列',
+            icon: FluentUIEmojiProxy.colorSvg('face_with_open_mouth_color'),
+            element: <MultipleStockPage />,
             category: categoryKeys.tool
         },
 
@@ -70,17 +90,6 @@ export default class PageRoutes {
             element: <LoginPage />,
             inFrame: false,
             showInSidebar: false,
-            showInHomePage: false,
-        },
-    
-    
-        {
-            path: '/',
-            name: '首页',
-            element: <IndexPage />,
-            icon: FluentUIEmojiProxy.colorSvg('seedling_color'),
-            inFrame: true,
-            showInSidebar: true,
             showInHomePage: false,
         },
     

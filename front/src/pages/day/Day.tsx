@@ -8,8 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import { request } from "../../utils/request";
 
 import ReactECharts from "echarts-for-react";
-import { SecurityBasicInfo } from "../../api/Entities";
-import { MinuteMarketDataEntry, calculateMA } from "./DayPageUtils";
+import { MinuteMarketDataEntry, SecurityBasicInfo } from "../../api/Entities";
+import { calculateMA } from "./DayPageUtils";
 
 
 /*
