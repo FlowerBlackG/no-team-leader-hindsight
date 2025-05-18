@@ -1,4 +1,4 @@
-import { Flex } from "antd";
+import { Flex, Radio, Select, Spin } from "antd";
 import { globalHooks } from "../../common/GlobalData";
 import PageRouteManager from "../../common/PageRoutes/PageRouteManager";
 import { useConstructor } from "../../utils/react-functional-helpers";
@@ -9,26 +9,7 @@ import { request } from "../../utils/request";
 
 import ReactECharts from "echarts-for-react";
 import { SecurityBasicInfo } from "../../api/Entities";
-
-
-
-interface MinuteMarketDataEntry {
-    security_id: string;
-    datetime: string;
-    pre_close_price: number;
-    open_price: number;
-    high_price: number;
-    low_price: number;
-    last_price: number;
-    volume: number;
-    amount: number;
-    iopv: number;
-    fp_volume: number;
-    fp_amount: number;
-    avg_price: number;
-    minute_num: number;
-    trading_day: string;
-}
+import { MinuteMarketDataEntry, calculateMA } from "./DayPageUtils";
 
 
 /*
@@ -45,9 +26,11 @@ export function DayPage() {
     const [marketData, setMarketData] = useState<MinuteMarketDataEntry[]>([])
     const [instInfo, setInstInfo] = useState<SecurityBasicInfo>()
 
-    const [kInterval, setKInterval] = useState(2)
+    const [kInterval, setKInterval] = useState(1)
     
     const [searchParams, setSearchParams] = useSearchParams()
+
+    const [loading, setLoading] = useState(false)
 
 
 
@@ -81,6 +64,7 @@ export function DayPage() {
 
 
     function fetchData(code: string) {
+        setLoading(true)
         request({
             url: '/minute-data',
             vfOpts: {
@@ -98,44 +82,22 @@ export function DayPage() {
             setMarketData(data.minute)
         }).catch(() => {})
         .finally(() => {
-
+            setLoading(false)
         })
     }
 
 
-    function calculateMA(dayCount: number, data: MinuteMarketDataEntry[]) {
-        let result = [] as number[]
-        for (let i = 0, len = data.length; i < len; i++) {
-            if (i < dayCount) {
-                result.push(0);
-                continue;
-            }
-            let sum = 0;
-            for (let j = 0; j < dayCount; j++) {
-                sum += data[i - j].last_price;
-            }
-            result.push(+(sum / dayCount).toFixed(3));
-        }
-
-
-        let intervalResult = [] as number[]
-        for (let i = kInterval - 1; i < result.length; i += kInterval) {
-            intervalResult.push(result[i])
-        }
-
-        return intervalResult
-    }
 
 
     // Ref: https://echarts.apache.org/examples/en/editor.html?c=candlestick-brush
     function getKChartOption(kInterval: number) {
         let xAxis = []
-        let data = [] as number[][]
+        let data: any[] = []
         let tradeVolumes = [] as any[]
 
         let n = Math.min(marketData.length, kInterval)
-        if (n <= 1)
-            n = 2
+        if (n < 1)
+            n = 1
 
         let dayLow = 9999999999
         let dayHi = -1
@@ -145,30 +107,36 @@ export function DayPage() {
         for (let i = n - 1; i < marketData.length; i += n) {
             xAxis.push(marketData[i].datetime.substring(8, 8 + 4))
 
-            let hiPri = marketData[i].high_price
-            let lowPri = marketData[i].low_price
-            let tradeVolume = 0
-
-            for (let j = i - n + 1; j < i; j++) {
-                hiPri = Math.max(hiPri, marketData[j].high_price)
-                lowPri = Math.min(lowPri, marketData[j].low_price)
-
-                dayHi = Math.max(dayHi, marketData[j].high_price)
-                dayLow = Math.min(dayLow, marketData[j].low_price)
-
-                tradeVolume += marketData[j].volume
+            if (kInterval === 1) {
+                data.push(marketData[i].last_price)
+                tradeVolumes.push([counter++, marketData[i].volume, (marketData[i].open_price <= marketData[i].last_price ? 1 : -1)])
+                
+                dayHi = Math.max(dayHi, marketData[i].high_price)
+                dayLow = Math.min(dayLow, marketData[i].low_price)
             }
+            else {
+                let hiPri = marketData[i].high_price
+                let lowPri = marketData[i].low_price
+                let tradeVolume = 0
 
-            tradeVolumes.push([counter++, tradeVolume, (marketData[i-n+1].open_price <= marketData[i-1].last_price ? 1 : -1)])
+                for (let j = i - n + 1; j < i; j++) {
+                    hiPri = Math.max(hiPri, marketData[j].high_price)
+                    lowPri = Math.min(lowPri, marketData[j].low_price)
 
-            let oneCandle = [
-                marketData[i-n+1].open_price,
-                marketData[i].last_price,
-                lowPri,
-                hiPri
-            ]
+                    dayHi = Math.max(dayHi, marketData[j].high_price)
+                    dayLow = Math.min(dayLow, marketData[j].low_price)
 
-            data.push(oneCandle)
+                    tradeVolume += marketData[j].volume
+                }
+
+                tradeVolumes.push([counter++, tradeVolume, (marketData[i-n+1].open_price <= marketData[i-1].last_price ? 1 : -1)])
+                data.push([
+                    marketData[i-n+1].open_price,
+                    marketData[i].last_price,
+                    lowPri,
+                    hiPri
+                ])
+            }
         }
 
 
@@ -266,7 +234,7 @@ export function DayPage() {
                 {
                     scale: true,
                     splitArea: {
-                        show: true
+                        show: kInterval > 1
                     },
                     min: dayLow,
                     max: dayHi
@@ -298,14 +266,14 @@ export function DayPage() {
             },
             series: [
                 {
-                    type: 'candlestick',
+                    type: kInterval === 1 ? 'line' : 'candlestick',
                     data: data
                     
                 },
                 {
                     name: 'MA12',
                     type: 'line',
-                    data: calculateMA(12, marketData),
+                    data: calculateMA(12, kInterval, marketData),
                     smooth: true,
                     lineStyle: {
                         opacity: 0.2
@@ -314,14 +282,14 @@ export function DayPage() {
                 {
                     name: 'MA30',
                     type: 'line',
-                    data: calculateMA(30, marketData),
+                    data: calculateMA(30, kInterval, marketData),
                     smooth: true,
                     lineStyle: {
                         opacity: 0.2
                     }
                 },
                 {
-                    name: 'Volume',
+                    name: '成交量',
                     type: 'bar',
                     xAxisIndex: 1,
                     yAxisIndex: 1,
@@ -332,6 +300,16 @@ export function DayPage() {
     }
 
 
+    const kIntervalOptions = [
+        { value: 1, label: '1分钟' },
+        { value: 2, label: '2分钟' },
+        { value: 5, label: '5分钟' },
+        { value: 15, label: '15分钟' },
+        { value: 30, label: '30分钟' },
+        { value: 60, label: '60分钟' },
+    ];
+
+
     return <Flex vertical
         style={{
             width: '100%',
@@ -340,7 +318,30 @@ export function DayPage() {
             left: 0,
             position: 'absolute',
         }}
-    >
+    ><Spin spinning={loading}>
+
+
+        <Flex style={{ width: '100%', justifyContent: 'center', alignItems: 'center', padding: '12px 0' }}>
+
+            <span>tick 间隔</span>
+
+            <Radio.Group 
+                style={{ marginLeft: 16 }}
+                value={kInterval}
+                onChange={value => setKInterval(value.target.value)}
+                buttonStyle="solid"
+            >
+                {
+                    kIntervalOptions.map(it => 
+                        <Radio.Button value={it.value}>
+                            {it.label}
+                        </Radio.Button>
+                    )
+                }
+            </Radio.Group>
+
+        </Flex>
+
         <ReactECharts 
             option={ getKChartOption(kInterval) }
 
@@ -352,7 +353,7 @@ export function DayPage() {
             }}
             
         />
-    </Flex>
+    </Spin></Flex>
 
 
 }
