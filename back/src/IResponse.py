@@ -18,7 +18,6 @@ class IResponse:
     @staticmethod
     def ok(data=None, msg=None, code=HTTPStatus.OK):
         ires = IResponse(data, code.value, msg or code.phrase)
-        print(json.dumps(ires, cls=IResponseJSONEncoder, ensure_ascii=False))
         return flask.Response(json.dumps(ires, cls=IResponseJSONEncoder, ensure_ascii=False), content_type='application/json')
 
     @staticmethod
