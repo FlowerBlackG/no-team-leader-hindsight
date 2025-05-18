@@ -109,6 +109,16 @@ def security_info(search: str) -> list[structs.InstrumentInfo]:
     return res
 
 
+def all_security_info() -> list[structs.InstrumentInfo]:
+    res = []
+    for _, row in __jqdata.securities_raw.iterrows():
+        info = _security_raw_row_to_instrument_info(row)
+        if info.inst_type not in ['stock', 'etf', 'index']:
+            continue
+        res.append(info)
+    return res
+
+
 def init(cache_only=False) -> bool:
     if (not cache_only) and (not _auth()):
         return False

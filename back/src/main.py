@@ -33,6 +33,11 @@ def get_security_basic_info():
     return IResponse.ok(res)
 
 
+@app.route('/all-security-basic-info', methods=['GET'])
+def get_all_security_basic_info():
+    res = JQDataTools.all_security_info()
+    return IResponse.ok(res)
+
 
 @app.route('/minute-data', methods=['GET'])
 def get_minute_data():
