@@ -36,5 +36,3 @@ export interface MinuteMarketDataEntry {
     minute_num: number;
     trading_day: string;
 }
-
-
