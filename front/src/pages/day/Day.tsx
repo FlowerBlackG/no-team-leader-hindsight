@@ -100,7 +100,7 @@ export function DayPage() {
     }
 
 
-    function getKChartOption(kInterval: number) {
+   function getKChartOption(kInterval: number) {
         let data: any[] = [];
         let tradeVolumes: any[] = [];
         let xAxisData: string[] = [];
@@ -133,7 +133,15 @@ export function DayPage() {
         }
 
         const macd = calculateMACD(marketData);
-        const indexSeriesData = indexData.map(d => [d.datetime.substring(8, 12), d.last_price]);
+
+        // ✅ 归一化上证指数
+        const baseStockPrice = marketData[0]?.last_price || 1;
+        const baseIndexPrice = indexData[0]?.last_price || 1;
+        const ratio = baseStockPrice / baseIndexPrice;
+        const normalizedIndexSeries = indexData.map(d => [
+            d.datetime.substring(8, 12),
+            d.last_price * ratio
+        ]);
 
         const grid: any[] = [];
         const xAxis: any[] = [];
@@ -142,8 +150,8 @@ export function DayPage() {
         let currentTop = 8;
         let gridIndex = 0;
 
-        // 主图
-        grid.push({ top: `${currentTop}%`, height: '48%', left: '10%', right: '8%' });
+        // 主图区域
+        grid.push({ top: `${currentTop}%`, height: '40%', left: '10%', right: '8%' });
         xAxis.push({ type: 'category', boundaryGap: false, data: xAxisData, gridIndex });
         yAxis.push({ scale: true, min: dayLow, max: dayHi, gridIndex });
         series.push({
@@ -152,6 +160,7 @@ export function DayPage() {
             xAxisIndex: gridIndex,
             yAxisIndex: gridIndex,
         });
+
         series.push({
             name: 'MA12',
             type: 'line',
@@ -171,12 +180,27 @@ export function DayPage() {
             yAxisIndex: gridIndex,
         });
 
+        // ✅ 将归一化后的上证指数叠加在主图
+        if (showIndex) {
+            series.push({
+                name: '上证指数（归一化）',
+                type: 'line',
+                data: normalizedIndexSeries,
+                xAxisIndex: gridIndex,
+                yAxisIndex: gridIndex,
+                lineStyle: { color: '#ff9800', width: 1 },
+                symbol: 'none',
+                connectNulls: true,
+                emphasis: { focus: 'series' }
+            });
+        }
+
         gridIndex++;
-        currentTop += 50;
+        currentTop += 45;
 
         // 成交量
         if (showVolume) {
-            grid.push({ top: `${currentTop+3}%`, height: '10%', left: '10%', right: '8%' });
+            grid.push({ top: `${currentTop}%`, height: '10%', left: '10%', right: '8%' });
             xAxis.push({ type: 'category', boundaryGap: false, data: xAxisData, gridIndex });
             yAxis.push({ scale: true, gridIndex, splitNumber: 2, show: false });
             series.push({
@@ -184,34 +208,21 @@ export function DayPage() {
                 type: 'bar',
                 data: tradeVolumes,
                 xAxisIndex: gridIndex,
-                yAxisIndex: gridIndex
-            });
-            gridIndex++;
-            currentTop += 12;
-        }
-
-        // 指数
-        if (showIndex) {
-            grid.push({ top: `${currentTop+6}%`, height: '10%', left: '10%', right: '8%' });
-            xAxis.push({ type: 'category', boundaryGap: false, data: xAxisData, gridIndex });
-            yAxis.push({ scale: true, gridIndex, splitNumber: 2, show: true });
-            series.push({
-                name: '上证指数',
-                type: 'line',
-                data: indexSeriesData,
-                xAxisIndex: gridIndex,
                 yAxisIndex: gridIndex,
-                lineStyle: { color: 'red' },
-                connectNulls: true
+                itemStyle: {
+                    color: (params: any) => {
+                        // 第三个字段是 1 表示上涨，用红色；-1 表示下跌，用绿色
+                        return params.data[2] === 1 ? '#ee3f4d' : '#43b244';
+                    }
+                }
             });
             gridIndex++;
             currentTop += 12;
         }
 
         // MACD
-
         if (showMACD) {
-            grid.push({ top: `${currentTop+8}%`, height: '14%', left: '10%', right: '8%' });
+            grid.push({ top: `${currentTop + 8}%`, height: '15%', left: '10%', right: '8%' });
             xAxis.push({ type: 'category', boundaryGap: false, data: macd.x, gridIndex });
             yAxis.push({ scale: true, gridIndex, splitNumber: 2, show: true });
             series.push({
@@ -247,22 +258,17 @@ export function DayPage() {
                 text: instInfo ? `${instInfo.id} ${instInfo.display_name}` : '',
                 left: 12
             },
-            tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'cross' }
+            },
             grid,
             xAxis,
             yAxis,
-            visualMap: {
-                show: false,
-                seriesIndex: 3,
-                dimension: 2,
-                pieces: [
-                    { value: 1, color: '#ee3f4d' },
-                    { value: -1, color: '#43b244' }
-                ]
-            },
             series
         };
     }
+
 
 
 
@@ -301,7 +307,7 @@ export function DayPage() {
               <ReactECharts
                     option={getKChartOption(kInterval)}
                     key={chartKey}
-                    style={{ width: '100%', height: 900 }}
+                    style={{ width: '100%', height: 1000 }}
               />
 
 
