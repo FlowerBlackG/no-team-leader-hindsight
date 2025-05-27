@@ -5,6 +5,8 @@ import MinuteData
 
 import JQDataTools
 
+import structs
+
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -22,6 +24,15 @@ def ping():
     return IResponse.ok(result)
 
 
+def ignore_sze_stocks(data: list[structs.InstrumentInfo]) -> list[structs.InstrumentInfo]:
+    res = []
+    for it in data:
+        if it.inst_type == 'stock' and it.id.startswith('0'):
+            continue
+        res.append(it)
+    return res
+
+
 @app.route('/security-basic-info', methods=['GET'])
 def get_security_basic_info():
     search = request.args.get('search')
@@ -30,13 +41,13 @@ def get_security_basic_info():
         return IResponse.error(msg='bad argument.')
     
     res = JQDataTools.security_info(search)
-    return IResponse.ok(res)
+    return IResponse.ok(ignore_sze_stocks(res))
 
 
 @app.route('/all-security-basic-info', methods=['GET'])
 def get_all_security_basic_info():
     res = JQDataTools.all_security_info()
-    return IResponse.ok(res)
+    return IResponse.ok(ignore_sze_stocks(res))
 
 
 @app.route('/minute-data', methods=['GET'])

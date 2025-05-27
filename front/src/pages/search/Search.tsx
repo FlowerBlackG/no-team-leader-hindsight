@@ -46,7 +46,7 @@ export function SearchPage() {
             }
         }).then(untypedData => {
             const data = untypedData as SecurityBasicInfo[]
-            setSearchData(data.filter(it => ['stock', 'etf'].includes(it.inst_type) ))
+            setSearchData(data.filter(it => ['stock', 'etf', 'index'].includes(it.inst_type) ))
         }).catch(err => {
             globalHooks.app.message.error("无法搜索！")
         }).finally(() => {
