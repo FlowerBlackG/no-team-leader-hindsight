@@ -27,6 +27,7 @@ class _JQData:
         # type -> ( 6-char code -> instrument )
         self.securities: dict[str, dict[str, structs.InstrumentInfo]] = dict()
         self.securities_raw = pd.DataFrame()
+        self.securities_list: list[structs.InstrumentInfo] = []
 
     def load(self, raw: pd.DataFrame):
         self.securities.clear()
@@ -38,6 +39,7 @@ class _JQData:
                 self.securities[inst.inst_type] = dict()
             
             self.securities[inst.inst_type][inst.id] = inst
+            self.securities_list.append(inst)
         
         log.info('JQ Data loaded.')
 
@@ -103,19 +105,18 @@ def _get_all_securities():
 
 def security_info(search: str) -> list[structs.InstrumentInfo]:
     res = []
-    for _, row in __jqdata.securities_raw.iterrows():
-        if (search in row['instrument_id']) or (search in row['display_name']):
-            res.append(_security_raw_row_to_instrument_info(row))
+    for it in __jqdata.securities_list:
+        if (search in it.id) or (search in it.display_name):
+            res.append(it)
     return res
 
 
 def all_security_info() -> list[structs.InstrumentInfo]:
     res = []
-    for _, row in __jqdata.securities_raw.iterrows():
-        info = _security_raw_row_to_instrument_info(row)
-        if info.inst_type not in ['stock', 'etf', 'index']:
+    for it in __jqdata.securities_list:
+        if it.inst_type not in ['stock', 'etf', 'index']:
             continue
-        res.append(info)
+        res.append(it)
     return res
 
 
