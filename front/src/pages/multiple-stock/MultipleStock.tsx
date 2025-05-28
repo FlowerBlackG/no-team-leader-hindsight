@@ -33,44 +33,13 @@ const gridConfigs = [
 export function MultipleStockPage() {
     const pageEntity = PageRouteManager.getRouteEntity('/multiple-stock')
 
-    const [stockSearchOptions, setStockSearchOptions] = useState<any>([])
     const [gridConfig, setGridConfig] = useState(gridConfigs[0])
-
-
-    function loadStockSearchOptions() {
-        request({
-            url: '/all-security-basic-info',
-            method: 'get',
-            vfOpts: {
-                autoHandleNonOKResults: true,
-                rejectNonOKResults: true,
-                giveResDataToCaller: true
-            }
-        }).then(untypedData => {
-            console.log(untypedData)
-            const options = [] as any[]
-            for (const it of untypedData) {
-                
-                options.push({
-                    value: `${it['id']}.${it['inst_type']}`,
-                    label: `${it["id"]} : ${it["display_name"]}`
-                })
-            }
-
-            setStockSearchOptions(options)
-        }).catch(err => {
-
-        }).finally(() => {
-
-        })
-    }
 
 
     useConstructor(constructor)
     function constructor() {
         globalHooks.layoutFrame.setCurrentPageEntity(pageEntity)
 
-        later(loadStockSearchOptions)
     }
 
 
@@ -87,9 +56,7 @@ export function MultipleStockPage() {
                             position: 'relative'
                         }}
                     >
-                        <SingleStockView
-                            stockSelectOptions={stockSearchOptions}
-                        />
+                        <SingleStockView />
                     </div>
                 )
             }

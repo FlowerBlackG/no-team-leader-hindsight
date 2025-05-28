@@ -5,9 +5,10 @@ import { MinuteMarketDataEntry } from "../../api/Entities";
 import { useConstructor } from "../../utils/react-functional-helpers";
 import { later } from "../../utils/later";
 import { request } from "../../utils/request";
+import { SelectStock } from "../../components/SelectStock";
 
 interface SingleStockViewProps {
-    stockSelectOptions: []
+    
 }
 
 export function SingleStockView(props: SingleStockViewProps) {
@@ -165,23 +166,7 @@ export function SingleStockView(props: SingleStockViewProps) {
             width: '100%'
         }}
     >
-        <Select
-            showSearch
-
-            filterOption={(input, option: any) => {
-                return option['label'].toLowerCase().includes(input.toLowerCase())
-            }}
-
-            style={{
-                width: '100%',
-                flexShrink: 0
-            }}
-
-            placeholder={'下拉选择你的标的'}
-
-            options={props.stockSelectOptions}
-            onChange={loadMarketData}
-        />
+        <SelectStock onChange={loadMarketData} />
 
         {
             marketData.length ? 
