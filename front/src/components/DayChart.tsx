@@ -138,7 +138,7 @@ export function DayChart(props: DayChartProps) {
         let gridIndex = 0;
 
         // 主图区域
-        grid.push({ top: `${currentTop}%`, height: '40%', left: '10%', right: '8%' });
+        grid.push({ top: `${currentTop}%`, height: '26%', left: '10%', right: '8%' });
         xAxis.push({ type: 'category', boundaryGap: false, data: xAxisData, gridIndex });
         yAxis.push({ scale: true, min: dayLow, max: dayHi, gridIndex });
         series.push({
@@ -189,7 +189,7 @@ export function DayChart(props: DayChartProps) {
         }
 
         gridIndex++;
-        currentTop += 45;
+        currentTop += 31;
 
         // 成交量
         if (showVolume) {
@@ -210,7 +210,7 @@ export function DayChart(props: DayChartProps) {
                 }
             });
             gridIndex++;
-            currentTop += 12;
+            currentTop += 10;
         }
 
         // MACD
@@ -296,7 +296,7 @@ export function DayChart(props: DayChartProps) {
     if (instCode.length === 0)
         return <div>no code provided.</div>
 
-    return <div style={{ width: '100%', height: '100%', position: 'absolute'}}>
+    return <div style={{ width: '100%', height: '100%'}}>
         <Flex style={{ justifyContent: 'center', alignItems: 'center', padding: '12px 0' }}>
             <span>tick 间隔</span>
             <Radio.Group

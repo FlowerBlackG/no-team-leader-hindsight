@@ -12,6 +12,7 @@ import LoginPage from "../../pages/login/Login"
 import { MultipleStockPage } from "../../pages/multiple-stock/MultipleStock"
 import MyProfilePage from "../../pages/my-profile/MyProfile"
 import { SearchPage } from "../../pages/search/Search"
+import SimpleBacktestPage from "../../pages/simple-backtest/SimpleBacktest"
 import TestPage from "../../pages/test/Test"
 import FluentUIEmojiProxy from "../../utils/FluentUIEmojiProxy"
 import { PageRouteCategory, PageRouteData } from "./TypeDef"
@@ -68,6 +69,15 @@ export default class PageRoutes {
             name: '同列',
             icon: FluentUIEmojiProxy.colorSvg('face_with_open_mouth_color'),
             element: <MultipleStockPage />,
+            category: categoryKeys.tool
+        },
+
+        
+        {
+            path: '/simple-backtest',
+            name: '简单回测',
+            icon: FluentUIEmojiProxy.colorSvg('chart_increasing_color'),
+            element: <SimpleBacktestPage />,
             category: categoryKeys.tool
         },
 

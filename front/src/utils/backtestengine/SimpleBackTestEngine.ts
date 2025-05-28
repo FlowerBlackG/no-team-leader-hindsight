@@ -61,15 +61,14 @@ interface ClosePositionRecord {
 }
 
 
-export interface MakeOrderOptions {
+export interface PutOrderOptions {
     price: number;
     volume: number;
-    orderKind: 'buy' | 'sell';
-    time: string; // Time of order creation from market data
+    orderKind: 'buy' | 'sell'
 }
 
 
-export default class SimpleBackTestEngine {
+export class SimpleBackTestEngine {
     protected marketData: MinuteMarketDataEntry[]
     protected buyFee: Fee
     protected sellFee: Fee
@@ -92,7 +91,9 @@ export default class SimpleBackTestEngine {
         available: 0,
     }
 
-    protected currMDIndex = -1
+    protected capitalSpentForSecurity = 0  // 用于计算成本均价。
+
+    protected currMDIndex = 0
 
     protected generateId() {
         return this.nextId++
@@ -116,26 +117,39 @@ export default class SimpleBackTestEngine {
 
             if (order.orderKind === 'buy' && md.low_price <= order.price) {
                 // 买入成交
-                
-                this.holding.push({
-                    price: order.price,
-                    cost: order.capitalLocked / order.volume,
+
+                const price = Math.min(md.avg_price, order.price)
+                const fee = Math.min(this.buyFee.minimum, price * order.volume * this.buyFee.rate)
+                const spent = price * order.volume + fee
+
+                const hold = {
+                    price: price,
+                    cost: spent / order.volume,
                     volume: order.volume,
                     openTime: md.datetime
-                })
-
+                }
+                this.holding.push(hold)
                 this.traded.push(order)
+
+                this.capitalSpentForSecurity += spent
+
+                // refund
+                this.capital.available += order.capitalLocked - spent
                 
                 this.orders.splice(orderIdx, 1)
                 orderIdx--
             }
             else if (order.orderKind === 'sell' && md.high_price >= order.price) {
                 // 卖出成交
+
+                const price = md.avg_price
             
-                let fee = Math.max(this.sellFee.minimum, order.volume * order.price * this.sellFee.rate)
-                let income = Math.max(0, order.volume * order.price - fee)
+                let fee = Math.max(this.sellFee.minimum, order.volume * price * this.sellFee.rate)
+                let income = Math.max(0, order.volume * price - fee)
                 let cost = income / order.volume
                 this.capital.available += income
+                
+                this.capitalSpentForSecurity -= income
 
                 let volumeRemain = order.volume
                 let holdingIdx = 0
@@ -177,6 +191,9 @@ export default class SimpleBackTestEngine {
 
             orderIdx++
         }
+
+        if (this.holding.length === 0)
+            this.capitalSpentForSecurity = 0
     }
 
 
@@ -197,7 +214,7 @@ export default class SimpleBackTestEngine {
     }
 
 
-    putOrder(options: MakeOrderOptions): boolean {
+    putOrder(options: PutOrderOptions): boolean {
         const orderId = this.generateId();
         let capitalToLock = 0;
         let feeRate = 0;
@@ -221,7 +238,7 @@ export default class SimpleBackTestEngine {
 
         const newOrder: Order = {
             id: orderId,
-            time: options.time, // Should come from current market data tick
+            time: this.marketData[this.currMDIndex].datetime, // Should come from current market data tick
             price: options.price,
             volume: options.volume,
             orderKind: options.orderKind,
@@ -302,6 +319,22 @@ export default class SimpleBackTestEngine {
         return res
     }
 
+
+    getCurrentMD(): MinuteMarketDataEntry {
+        return this.marketData[this.currMDIndex]
+    }
+
+
+    getCurrentMDIndex(): number {
+        return this.currMDIndex
+    }
+
+
+    getAvgCost(): number {
+        if (this.holdingVolume() == 0)
+            return 0
+        return this.capitalSpentForSecurity / this.holdingVolume()
+    }
 
     tick(): MinuteMarketDataEntry | false {
         // tick to next md
