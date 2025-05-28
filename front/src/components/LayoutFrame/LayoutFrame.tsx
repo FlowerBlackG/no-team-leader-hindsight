@@ -113,7 +113,7 @@ export default function LayoutFrame(
 
             <FrameSidebar 
                 pageEntity={pageEntity} 
-                username={"伤心的飘"} 
+                username={"阿飘"} 
             />
         }
 
