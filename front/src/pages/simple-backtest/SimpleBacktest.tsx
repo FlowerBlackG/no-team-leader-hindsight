@@ -1,17 +1,18 @@
 import { useMemo, useState } from "react"
 import PageRouteManager from "../../common/PageRoutes/PageRouteManager"
 import { OptionsSettings } from "./OptionsSettings"
-import { SimpleBackTestEngine, SimpleBackTestEngineOptions } from "../../utils/backtestengine/SimpleBackTestEngine"
+import { Order, SimpleBackTestEngine, SimpleBackTestEngineOptions } from "../../utils/backtestengine/SimpleBackTestEngine"
 import { request } from "../../utils/request"
 import { globalHooks } from "../../common/GlobalData"
 import { MinuteMarketDataEntry, SecurityBasicInfo } from "../../api/Entities"
 import { DayChart } from "../../components/DayChart"
-import { Button, Card, InputNumber, Space, Typography } from "antd"
+import { Button, Card, Flex, InputNumber, Space, Typography } from "antd"
 import assert from "assert"
 import { PlayCircleOutlined, PlaySquareOutlined, RightOutlined } from "@ant-design/icons"
 import { later } from "../../utils/later"
 
 
+import styles from './Search.module.css'
 
 
 export default function SimpleBacktestPage() {
@@ -24,6 +25,8 @@ export default function SimpleBacktestPage() {
     const [tradeShares, setTradeShares] = useState<number | null>(null);
     const [tradeLimitPrice, setTradeLimitPrice] = useState<number | null>(null);
 
+    const [initialCapital, setInitialCapital] = useState(0)
+
     const [availableCapital, setAvailableCapital] = useState(0)
     const [lockedCapital, setLockedCapital] = useState(0)
     const [holdingVolumes, setHoldingVolumes] = useState(0)
@@ -35,6 +38,10 @@ export default function SimpleBacktestPage() {
 
     const [marketData, setMarketData] = useState<MinuteMarketDataEntry[]>([])
 
+    const [winRate, setWinRate] = useState(0)  // 0-100
+
+    const [orders, setOrders] = useState<Order[]>([])
+
 
     const engine = useMemo(() => {
         if (engineOptions) {
@@ -45,43 +52,6 @@ export default function SimpleBacktestPage() {
         return null
     }, [engineOptions])
     
-
-    if (engineOptions === null || !instInfo || marketData.length === 0) {
-        return <OptionsSettings onFinish={(opts) => {
-            request({
-                url: '/minute-data',
-                vfOpts: {
-                    autoHandleNonOKResults: true,
-                    giveResDataToCaller: true,
-                    rejectNonOKResults: true,
-                },
-                method: 'GET',
-                params: {
-                    date: '20240430',
-                    instId: opts.instCode.substring(0, 6),
-                }
-            }).then(data => {
-
-                setInstInfo(data['instInfo'])
-                setMarketData(data['minute'])
-                
-                setEngineOptions({
-                    initialCapital: opts.capital,
-                    marketData: data['minute'],
-                    buyFee: opts.buyFee,
-                    sellFee: opts.sellFee
-                })
-
-                
-            }).catch((err) => {
-                globalHooks.app.message.error('failed to load data. '.concat(err))
-            })
-            .finally(() => {
-                
-            })
-
-        }} />
-    }
 
     
     const assetViewTDStyle = {
@@ -105,8 +75,57 @@ export default function SimpleBacktestPage() {
 
         setTradeLimitPrice(eng.getCurrentMD().last_price)
         setTicks(eng.getCurrentMDIndex() + 1)
+
+        setWinRate(eng.getWinRate() * 100)
+        setOrders([...eng.getOrders()].reverse())
     }
 
+
+    // render
+
+    
+    if (engineOptions === null || !instInfo || marketData.length === 0) {
+        return <OptionsSettings onFinish={(opts) => {
+            request({
+                url: '/minute-data',
+                vfOpts: {
+                    autoHandleNonOKResults: true,
+                    giveResDataToCaller: true,
+                    rejectNonOKResults: true,
+                },
+                method: 'GET',
+                params: {
+                    date: '20240430',
+                    instId: opts.instCode.substring(0, 6),
+                }
+            }).then(data => {
+
+                setInstInfo(data['instInfo'])
+                setMarketData(data['minute'])
+
+                setInitialCapital(opts.capital)
+                
+                setEngineOptions({
+                    initialCapital: opts.capital,
+                    marketData: data['minute'],
+                    buyFee: opts.buyFee,
+                    sellFee: opts.sellFee
+                })
+
+                
+            }).catch((err) => {
+                globalHooks.app.message.error('failed to load data. '.concat(err))
+            })
+            .finally(() => {
+                
+            })
+
+        }} />
+    }
+
+
+
+    const totalEarn = totalAssets - initialCapital
 
     return <div
         style={{
@@ -138,7 +157,7 @@ export default function SimpleBacktestPage() {
                 position: 'absolute',
                 left: 'calc(50% + 8px)',
                 width: 'calc(50% - 16px - 8px)',
-                height: 600,
+                height: 560,
                 marginTop: 16,
             }}
             hoverable
@@ -154,7 +173,7 @@ export default function SimpleBacktestPage() {
 
                 {/* 用户资产 */}
                 <div>
-                    <Typography.Title level={4} style={{ marginTop: '16px', marginBottom: '8px' }}>资产</Typography.Title>
+                    <Typography.Title level={4} style={{ marginTop: '8px', marginBottom: '8px' }}>资产</Typography.Title>
                     
                     <tr>
                         <td style={assetViewTDStyle}>
@@ -176,6 +195,18 @@ export default function SimpleBacktestPage() {
                             <Typography.Text strong>可用余额</Typography.Text>
                             <br />
                             <Typography.Text>{availableCapital.toFixed(2)}</Typography.Text>
+                        </td>
+                        
+                        <td style={assetViewTDStyle}>
+                            <Typography.Text strong>总盈亏</Typography.Text>
+                            <br />
+                            <Typography.Text
+                                style={{
+                                    color: totalEarn > 0 ? '#ee3f4d' : (totalEarn === 0 ? '#000' : '#1ba784')
+                                }}
+                            >
+                                {totalEarn.toFixed(2)}
+                            </Typography.Text>
                         </td>
                     </tr>
                     <tr>
@@ -204,20 +235,25 @@ export default function SimpleBacktestPage() {
                             <Typography.Text>{avgCost.toFixed(2)}</Typography.Text>
                         </td>
                         
-                        <tr>
-                            <td style={assetViewTDStyle}>
-                                <Typography.Text strong>当前价</Typography.Text>
-                                <br />
-                                <Typography.Text>{marketData[ticks - 1].last_price.toFixed(2)}</Typography.Text>
-                            </td>
-                        </tr>
+                        <td style={assetViewTDStyle}>
+                            <Typography.Text strong>当前价</Typography.Text>
+                            <br />
+                            <Typography.Text>{marketData[ticks - 1].last_price.toFixed(2)}</Typography.Text>
+                        </td>
+
+                        
+                        <td style={assetViewTDStyle}>
+                            <Typography.Text strong>交易胜率</Typography.Text>
+                            <br />
+                            <Typography.Text>{winRate.toFixed(2)}%</Typography.Text>
+                        </td>
                     </tr>
                     
                 </div>
 
                 {/* Order Placement */}
                 <div>
-                    <Typography.Title level={4} style={{ marginTop: '16px', marginBottom: '8px' }}>交易</Typography.Title>
+                    <Typography.Title level={4} style={{ marginTop: '12px', marginBottom: '0px' }}>交易</Typography.Title>
                     <Space direction="vertical" style={{ width: '100%' }} size="small">
                         <Typography.Text>数量</Typography.Text>
                         <InputNumber
@@ -306,6 +342,113 @@ export default function SimpleBacktestPage() {
                     </Button>
                 </Space>
             </Space>
+
+        </Card>
+
+        { /* 挂单卡片 */ }
+        <Card
+            style={{
+                position: 'absolute',
+                left: 'calc(50% + 8px)',
+                width: 'calc(50% - 16px - 8px)',
+                height: 400,
+                top: 560 + 16 + 16,
+            }}
+            styles={{
+                body: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                }
+            }}
+            hoverable
+        >
+            <Typography.Title level={3}>委托</Typography.Title>
+            <Flex vertical
+                style={{
+                    flexGrow: 1,
+                    flexShrink: 0,
+                    height: 0
+                }}
+                className="overflow-y-overlay"
+            >
+                {
+                    orders.map(it => {
+                        return <div
+                            style={{
+                                border: '1px solid #2226',
+                                borderRadius: 8,
+                                padding: 4,
+                                marginBottom: 12
+                            }}
+                        >
+                            <tr
+                                style={{
+                                    color: it.orderKind === 'buy' ? '#ee3f4d' : '#1ba784',
+                                    fontSize: 20,
+                                    
+                                }}
+                            >
+                                
+                                <td style={assetViewTDStyle}>
+                                    <b>{it.orderKind === 'buy' ? '买入' : '卖出'}</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>委托单号</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.id}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>时间</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.time}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>限价</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.price}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>数量</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.volume}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>锁定资金</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.capitalLocked}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    
+                                    <Button
+                                        danger
+                                        type="primary"
+                                        shape="round"
+                                        onClick={() => {
+                                            if (engine?.deleteOrder(it.id))
+                                                globalHooks.app.message.success('撤单成功')
+                                            else
+                                                globalHooks.app.message.error('撤单失败')
+                                            loadAllStatisticsFromEngine()
+                                        }}
+                                    >
+                                        撤
+                                    </Button>
+                                </td>
+                            </tr>
+
+                        </div>
+                    })
+                }
+            </Flex>
 
         </Card>
     </div>

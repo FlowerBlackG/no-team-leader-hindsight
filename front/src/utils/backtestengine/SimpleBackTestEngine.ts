@@ -119,7 +119,7 @@ export class SimpleBackTestEngine {
                 // 买入成交
 
                 const price = Math.min(md.avg_price, order.price)
-                const fee = Math.min(this.buyFee.minimum, price * order.volume * this.buyFee.rate)
+                const fee = Math.max(this.buyFee.minimum, price * order.volume * this.buyFee.rate)
                 const spent = price * order.volume + fee
 
                 const hold = {
@@ -288,6 +288,9 @@ export class SimpleBackTestEngine {
 
 
     getWinRate(): number {
+        if (this.closeRecord.length === 0)
+            return 0
+
         let wins = 0
         for (const it of this.closeRecord) {
             if (it.closeCost >= it.openCost)
