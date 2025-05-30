@@ -79,7 +79,7 @@ export default function LayoutFrame(
 
         setPageDataLoading(false)
 
-        document.title = entity.title!.concat(' - 落霞前厅')
+        document.title = entity.title!.concat(' - 事后诸葛亮')
 
         setShowBackBtn(entity.showBackButton!)
         

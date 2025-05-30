@@ -62,7 +62,7 @@ export function DayChart(props: DayChartProps) {
 
     const [marketData, setMarketData] = useState<MinuteMarketDataEntry[]>([]);
     const [instCode, setInstCode] = useState('');
-    const [showIndex, setShowIndex] = useState(false); //是否显示上证指数
+    const [showIndex, setShowIndex] = useState(true); //是否显示上证指数
     const [showMACD, setShowMACD] = useState(true); //是否显示MACD
     const [showVolume, setShowVolume] = useState(true); //是否显示每日成交量
     const [kInterval, setKInterval] = useState(1);

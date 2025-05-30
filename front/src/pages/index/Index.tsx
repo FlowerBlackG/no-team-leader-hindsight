@@ -84,7 +84,7 @@ export function IndexPage() {
 
             <div style={{ width: '0.4em' }} />
 
-            <div>落霞前厅</div>
+            <div>No Teamleader Hindsight</div>
             
         </div>
 

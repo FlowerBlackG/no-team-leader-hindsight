@@ -45,9 +45,9 @@ export function OptionsSettings(props: OptionsSettingsProps) {
     // 设置表单初始值
     const formInitialValues = {
         capital: 100000,
-        buyFeeMinimum: 0,
+        buyFeeMinimum: 5,
         buyFeeRate: 0.0003,
-        sellFeeMinimum: 0,
+        sellFeeMinimum: 5,
         sellFeeRate: 0.0003,
         instCode: instCode,
     };

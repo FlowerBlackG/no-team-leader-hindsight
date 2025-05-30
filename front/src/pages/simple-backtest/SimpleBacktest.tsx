@@ -22,7 +22,7 @@ export default function SimpleBacktestPage() {
     const [instInfo, setInstInfo] = useState<SecurityBasicInfo>()
     const [ticks, setTicks] = useState(1)
 
-    const [tradeShares, setTradeShares] = useState<number | null>(null);
+    const [tradeShares, setTradeShares] = useState<number | null>(100);
     const [tradeLimitPrice, setTradeLimitPrice] = useState<number | null>(null);
 
     const [initialCapital, setInitialCapital] = useState(0)
