@@ -95,7 +95,7 @@ export function DayChart(props: DayChartProps) {
         let dayHi = -1;
         let counter = 0;
         
-        const xAxisData = marketData.map(it => it.datetime.substring(8, 12))
+        const xAxisData = [] as string[]
 
         for (let i = n - 1; i < marketData.length && i < props.ticks; i += n) {
             if (kInterval === 1) {
@@ -117,6 +117,10 @@ export function DayChart(props: DayChartProps) {
                 tradeVolumes.push([counter++, tradeVolume, marketData[i - n + 1].open_price <= marketData[i].last_price ? 1 : -1]);
                 data.push([marketData[i - n + 1].open_price, marketData[i].last_price, lowPri, hiPri]);
             }
+        }
+
+        for (let i = n - 1; i < marketData.length; i += n) {
+            xAxisData.push(marketData[i].datetime.substring(8, 12))
         }
 
         const macd = calculateMACD(marketData, props.ticks);
