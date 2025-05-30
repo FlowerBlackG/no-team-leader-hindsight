@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import PageRouteManager from "../../common/PageRoutes/PageRouteManager"
 import { OptionsSettings } from "./OptionsSettings"
-import { Order, SimpleBackTestEngine, SimpleBackTestEngineOptions } from "../../utils/backtestengine/SimpleBackTestEngine"
+import { ClosePositionRecord, Order, SimpleBackTestEngine, SimpleBackTestEngineOptions } from "../../utils/backtestengine/SimpleBackTestEngine"
 import { request } from "../../utils/request"
 import { globalHooks } from "../../common/GlobalData"
 import { MinuteMarketDataEntry, SecurityBasicInfo } from "../../api/Entities"
@@ -13,6 +13,11 @@ import { later } from "../../utils/later"
 
 
 import styles from './Search.module.css'
+
+
+function timeStrToHumanReadable(str: string): string {
+    return `${str.substring(8, 10)}:${str.substring(10, 12)}`
+}
 
 
 export default function SimpleBacktestPage() {
@@ -41,6 +46,7 @@ export default function SimpleBacktestPage() {
     const [winRate, setWinRate] = useState(0)  // 0-100
 
     const [orders, setOrders] = useState<Order[]>([])
+    const [closePositions, setClosePositions] = useState<ClosePositionRecord[]>([])
 
 
     const engine = useMemo(() => {
@@ -78,6 +84,7 @@ export default function SimpleBacktestPage() {
 
         setWinRate(eng.getWinRate() * 100)
         setOrders([...eng.getOrders()].reverse())
+        setClosePositions([...eng.getClosePositionRecord()].reverse())
     }
 
 
@@ -157,13 +164,13 @@ export default function SimpleBacktestPage() {
                 position: 'absolute',
                 left: 'calc(50% + 8px)',
                 width: 'calc(50% - 16px - 8px)',
-                height: 560,
+                height: 410,
                 marginTop: 16,
             }}
             hoverable
             className="overflow-y-overlay"
         >
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Flex vertical style={{ width: '100%' }}>
                 {/* Instrument Information */}
                 <div>
                     <Typography.Title level={3} style={{ marginBottom: '8px' }}>{instInfo.id} {instInfo.display_name}</Typography.Title>
@@ -254,7 +261,8 @@ export default function SimpleBacktestPage() {
                 {/* Order Placement */}
                 <div>
                     <Typography.Title level={4} style={{ marginTop: '12px', marginBottom: '0px' }}>交易</Typography.Title>
-                    <Space direction="vertical" style={{ width: '100%' }} size="small">
+                    <div style={{ height: 4 }} />
+                    <Space direction="horizontal" style={{ width: '100%' }} size="small">
                         <Typography.Text>数量</Typography.Text>
                         <InputNumber
                             min={100}
@@ -263,6 +271,7 @@ export default function SimpleBacktestPage() {
                             style={{ width: '100%' }}
                             step={100}
                         />
+                        <div style={{width: 8}} />
                         <Typography.Text>限价</Typography.Text>
                         <InputNumber
                             min={marketData.length ? (Math.round(marketData[0].open_price * 0.8 * 100) / 100) : 0.01}
@@ -341,7 +350,7 @@ export default function SimpleBacktestPage() {
                         继续
                     </Button>
                 </Space>
-            </Space>
+            </Flex>
 
         </Card>
 
@@ -351,8 +360,8 @@ export default function SimpleBacktestPage() {
                 position: 'absolute',
                 left: 'calc(50% + 8px)',
                 width: 'calc(50% - 16px - 8px)',
-                height: 400,
-                top: 560 + 16 + 16,
+                height: 300,
+                top: 410 + 16 + 16,
             }}
             styles={{
                 body: {
@@ -405,7 +414,7 @@ export default function SimpleBacktestPage() {
                                 <td style={assetViewTDStyle}>
                                     <Typography.Text strong>时间</Typography.Text>
                                     <br />
-                                    <Typography.Text>{it.time}</Typography.Text>
+                                    <Typography.Text>{timeStrToHumanReadable(it.time)}</Typography.Text>
                                 </td>
                                 
                                 <td style={assetViewTDStyle}>
@@ -443,6 +452,119 @@ export default function SimpleBacktestPage() {
                                         撤
                                     </Button>
                                 </td>
+                            </tr>
+
+                        </div>
+                    })
+                }
+            </Flex>
+
+        </Card>
+
+        { /* 清仓分析 */ }
+        <Card
+            style={{
+                position: 'absolute',
+                left: 'calc(50% + 8px)',
+                width: 'calc(50% - 16px - 8px)',
+                height: 330,
+                top: 410 + 16 + 16 + 300 + 16,
+            }}
+            styles={{
+                body: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                }
+            }}
+            hoverable
+        >
+            <Typography.Title level={3}>清仓分析</Typography.Title>
+            <Flex vertical
+                style={{
+                    flexGrow: 1,
+                    flexShrink: 0,
+                    height: 0
+                }}
+                className="overflow-y-overlay"
+            >
+                {
+                    closePositions.map(it => {
+                        return <div
+                            style={{
+                                border: '1px solid #2226',
+                                borderRadius: 8,
+                                padding: 4,
+                                marginBottom: 12
+                            }}
+                        >
+                            <tr
+                                style={{
+                                    color: it.closeCost >= it.openCost ? '#ee3f4d' : '#1ba784',
+                                    fontSize: 20,
+                                    
+                                }}
+                            >
+                                
+                                <td style={assetViewTDStyle}>
+                                    <b>{it.closeCost >= it.openCost ? '盈利' : '亏损'}</b>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>开仓时间</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{timeStrToHumanReadable(it.openTime)}</Typography.Text>
+                                </td>
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>开仓价</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.openPrice}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>开仓成本</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.openCost}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>数量</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.volume}</Typography.Text>
+                                </td>
+                                
+
+                            </tr>
+                            <tr>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>清仓时间</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{timeStrToHumanReadable(it.closeTime)}</Typography.Text>
+                                </td>
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>清仓价</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.closePrice}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>清仓成本</Typography.Text>
+                                    <br />
+                                    <Typography.Text>{it.closeCost}</Typography.Text>
+                                </td>
+                                
+                                <td style={assetViewTDStyle}>
+                                    <Typography.Text strong>盈利</Typography.Text>
+                                    <br />
+                                    <Typography.Text style={{ color: it.closeCost >= it.openCost ? '#ee3f4d' : '#1ba784' }}>
+                                        {((it.closeCost - it.openCost) * it.volume).toFixed(2)}
+                                    </Typography.Text>
+                                </td>
+                                
                             </tr>
 
                         </div>

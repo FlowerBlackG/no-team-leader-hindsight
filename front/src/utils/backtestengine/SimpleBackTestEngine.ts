@@ -1,5 +1,6 @@
 import { number } from "echarts"
 import { MinuteMarketDataEntry } from "../../api/Entities"
+import { globalHooks } from "../../common/GlobalData"
 
 
 export interface Fee {
@@ -48,7 +49,7 @@ interface Holding {
 
 
 // 清仓记录
-interface ClosePositionRecord {
+export interface ClosePositionRecord {
     openTime: string
     openPrice: number
     openCost: number
@@ -115,10 +116,10 @@ export class SimpleBackTestEngine {
         while (orderIdx < this.orders.length) {
             const order = this.orders[orderIdx]
 
-            if (order.orderKind === 'buy' && md.low_price <= order.price) {
+            if (order.orderKind === 'buy' && md.last_price <= order.price) {
                 // 买入成交
 
-                const price = Math.min(md.avg_price, order.price)
+                const price = md.last_price
                 const fee = Math.max(this.buyFee.minimum, price * order.volume * this.buyFee.rate)
                 const spent = price * order.volume + fee
 
@@ -139,10 +140,10 @@ export class SimpleBackTestEngine {
                 this.orders.splice(orderIdx, 1)
                 orderIdx--
             }
-            else if (order.orderKind === 'sell' && md.high_price >= order.price) {
+            else if (order.orderKind === 'sell' && md.last_price >= order.price) {
                 // 卖出成交
 
-                const price = md.avg_price
+                const price = md.last_price
             
                 let fee = Math.max(this.sellFee.minimum, order.volume * price * this.sellFee.rate)
                 let income = Math.max(0, order.volume * price - fee)
